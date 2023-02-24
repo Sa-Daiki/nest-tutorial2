@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
-import { Item } from 'src/entities/item.entity';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { User } from 'src/entities/user.entity';
-import { GetUser } from 'src/auth/decorator/get-user.decolator';
-import { UserStatus } from 'src/auth/user-status.enum';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Role } from 'src/auth/decorator/role.decolator';
+import { Item } from '../entities/item.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from '../entities/user.entity';
+import { GetUser } from '../auth/decorator/get-user.decolator';
+import { UserStatus } from '../auth/user-status.enum';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Role } from '../auth/decorator/role.decolator';
 
 @Controller('/items')
 @UseInterceptors(ClassSerializerInterceptor)
