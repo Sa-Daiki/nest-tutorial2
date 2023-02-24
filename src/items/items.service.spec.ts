@@ -1,8 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { ItemsService } from './items.service';
 import { ItemRepository } from './item.repository';
-import { UserStatus } from '../auth/user-status.enum';
 import { ItemStatus } from './item-status.enum';
+import { UserStatus } from '../auth/user-status.enum';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 const mockItemRepository = () => ({
@@ -17,17 +17,17 @@ const mockUser1 = {
   id: '1',
   username: 'test1',
   password: '1234',
-  status: UserStatus.PREMIUM,
+  status: UserStatus.FREE,
 };
 
 const mockUser2 = {
   id: '2',
   username: 'test2',
   password: '1234',
-  status: UserStatus.FREE,
+  status: UserStatus.PREMIUM,
 };
 
-describe('ItemsServiceTest', () => {
+describe('ItemServiceTest', () => {
   let itemsService;
   let itemRepository;
 
@@ -47,88 +47,89 @@ describe('ItemsServiceTest', () => {
   });
 
   describe('findAll', () => {
-    it('should return an array of items', async () => {
+    it('正常系', async () => {
       const expected = [];
-      itemRepository.find = jest.fn().mockResolvedValue(expected);
+      itemRepository.find.mockResolvedValue(expected);
       const result = await itemsService.findAll();
+
       expect(result).toEqual(expected);
     });
   });
 
   describe('findById', () => {
-    it('should return an item', async () => {
+    it('正常系', async () => {
       const expected = {
         id: 'test-id',
         name: 'PC',
-        price: 500000,
+        price: 50000,
         description: '',
         status: ItemStatus.ON_SALE,
-        created_at: '',
-        updated_at: '',
+        createdAt: '',
+        updateAt: '',
         userId: mockUser1.id,
         user: mockUser1,
       };
 
-      itemRepository.findOne = jest.fn().mockResolvedValue(expected);
+      itemRepository.findOne.mockResolvedValue(expected);
       const result = await itemsService.findById('test-id');
       expect(result).toEqual(expected);
     });
-    it('should throw an error if item is not found', async () => {
+
+    it('異常系', async () => {
       itemRepository.findOne.mockResolvedValue(null);
-      expect(itemsService.findById('test-id')).rejects.toThrow(
+      await expect(itemsService.findById('test-id')).rejects.toThrow(
         NotFoundException,
       );
     });
   });
 
-  it('should create an item', async () => {
-    const expected = {
-      id: 'test-id',
-      name: 'PC',
-      price: 500000,
-      description: '',
-      status: ItemStatus.ON_SALE,
-      created_at: '',
-      updated_at: '',
-      userId: mockUser1.id,
-      user: mockUser1,
-    };
-
-    itemRepository.createItem.mockResolvedValue(expected);
-    const result = await itemsService.create(
-      {
+  describe('create', () => {
+    it('正常系', async () => {
+      const expected = {
+        id: 'test-id',
         name: 'PC',
-        price: 500000,
+        price: 50000,
         description: '',
-      },
-      mockUser1,
-    );
-    expect(result).toEqual(expected);
+        status: ItemStatus.ON_SALE,
+        createdAt: '',
+        updateAt: '',
+        userId: mockUser1.id,
+        user: mockUser1,
+      };
+
+      itemRepository.createItem.mockResolvedValue(expected);
+      const result = await itemsService.create({
+        name: 'PC',
+        price: 50000,
+        description: '',
+      });
+      expect(result).toEqual(expected);
+    });
   });
 
-  describe('should update an item status', () => {
+  describe('updateStatus', () => {
     const mockItem = {
       id: 'test-id',
       name: 'PC',
-      price: 500000,
+      price: 50000,
       description: '',
-      status: ItemStatus.ON_SALE,
-      created_at: '',
-      updated_at: '',
+      status: ItemStatus.SOLD_OUT,
+      createdAt: '',
+      updateAt: '',
       userId: mockUser1.id,
       user: mockUser1,
     };
-    it('should update an item status', async () => {
+    it('正常系', async () => {
       itemRepository.findOne.mockResolvedValue(mockItem);
       await itemsService.updateStatus('test-id', mockUser2);
       expect(itemRepository.save).toHaveBeenCalled();
     });
 
-    it('should throw an error if item is not found', async () => {
+    it('異常系:自分自身の商品を購入', async () => {
       itemRepository.findOne.mockResolvedValue(mockItem);
-      expect(itemsService.updateStatus('test-id', mockUser1)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        itemsService.updateStatus('test-id', mockUser1),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -136,21 +137,21 @@ describe('ItemsServiceTest', () => {
     const mockItem = {
       id: 'test-id',
       name: 'PC',
-      price: 500000,
+      price: 50000,
       description: '',
-      status: ItemStatus.ON_SALE,
-      created_at: '',
-      updated_at: '',
+      status: ItemStatus.SOLD_OUT,
+      createdAt: '',
+      updateAt: '',
       userId: mockUser1.id,
       user: mockUser1,
     };
-    it('should update an item status', async () => {
+    it('正常系', async () => {
       itemRepository.findOne.mockResolvedValue(mockItem);
       await itemsService.delete('test-id', mockUser1);
       expect(itemRepository.delete).toHaveBeenCalled();
     });
 
-    it('should throw an error if item is not found', async () => {
+    it('異常系:他人の商品を削除', async () => {
       itemRepository.findOne.mockResolvedValue(mockItem);
       await expect(itemsService.delete('test-id', mockUser2)).rejects.toThrow(
         BadRequestException,
